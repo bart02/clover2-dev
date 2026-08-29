@@ -113,8 +113,8 @@ runs:
         remove_packages_one_command: true
         remove_folders: >-
           ${{ runner.arch == 'ARM64'
-            && '/usr/share/swift /usr/local/share/powershell /usr/local/lib/node_modules /usr/share/az* /usr/local/aws-cli'
-            || '/usr/share/swift /usr/share/miniconda /usr/share/az* /usr/local/lib/node_modules /usr/local/share/chromium /usr/local/share/powershell /usr/local/julia /usr/local/aws-cli /usr/local/aws-sam-cli /usr/share/gradle' }}
+            && '/usr/share/swift /usr/local/share/powershell /usr/local/lib/node_modules /usr/share/az*'
+            || '/usr/share/swift /usr/share/miniconda /usr/share/az* /usr/local/lib/node_modules /usr/local/share/chromium /usr/local/share/powershell /usr/local/julia /usr/share/gradle' }}
         rm_cmd: "rmz"
         rmz_version: "3.2.0"
         testing: false
