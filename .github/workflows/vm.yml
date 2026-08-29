@@ -1,4 +1,4 @@
-name: Docker VM
+name: Build VM
 
 on:
   push:
@@ -19,8 +19,17 @@ jobs:
   build:
     runs-on: ubuntu-latest # ubuntu-24.04-arm, ubuntu-24.04-riscv
     steps:
-      - uses: armbian/build@main
-        with:
-          armbian_token: ${{ secrets.GITHUB_TOKEN }}
-          armbian_target: "clover2-vb"
-          armbian_runner_clean: "yes" # recommended for Github runners
+      - run: |
+          touch aaa.py
+          aws s3 sync . s3://clover-vm/${{github.run_id}} --acl public-read --no-progress
+          echo Uploaded https://clover-vm.s3.cloud.ru/${{github.run_id}}/$(ls)
+        env:
+          AWS_ACCESS_KEY_ID: ${{secrets.S3_KEY}}
+          AWS_SECRET_ACCESS_KEY: ${{secrets.S3_SECRET_KEY}}
+          AWS_ENDPOINT_URL: https://s3.cloud.ru/
+          AWS_DEFAULT_REGION: ru-central-1
+      # - uses: ./.github/actions/vm-build
+      #   with:
+      #     armbian_token: ${{ secrets.GITHUB_TOKEN }}
+      #     armbian_target: "clover2-vb"
+      #     armbian_runner_clean: "yes" # recommended for Github runners
