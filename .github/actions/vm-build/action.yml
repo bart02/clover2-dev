@@ -99,14 +99,25 @@ runs:
 
     - name: Free Github Runner
       if: ${{ inputs.armbian_runner_clean != '' }}
-      uses: descriptinc/free-disk-space@1b4b157593c6801212a2ed488c205e0a810b4592 # main
+      uses: endersonmenezes/free-disk-space@v4
       with:
-        android: true
-        dotnet: true
-        haskell: true
-        large-packages: true
-        docker-images: true
-        swap-storage: true
+        remove_android: true
+        remove_dotnet: true
+        remove_haskell: true
+        remove_tool_cache: true
+        remove_swap: true
+        remove_packages: >-
+          ${{ runner.arch == 'ARM64'
+            && 'azure-cli dotnet-sdk-8.0 temurin-* *llvm* mysql* firefox'
+            || 'azure-cli google-cloud-cli microsoft-edge-stable google-chrome-stable firefox postgresql* temurin-* *llvm* mysql* dotnet-sdk-*' }}
+        remove_packages_one_command: true
+        remove_folders: >-
+          ${{ runner.arch == 'ARM64'
+            && '/usr/share/swift /usr/local/share/powershell /usr/local/lib/node_modules /usr/share/az* /usr/local/aws-cli'
+            || '/usr/share/swift /usr/share/miniconda /usr/share/az* /usr/local/lib/node_modules /usr/local/share/chromium /usr/local/share/powershell /usr/local/julia /usr/local/aws-cli /usr/local/aws-sam-cli /usr/share/gradle' }}
+        rm_cmd: "rmz"
+        rmz_version: "3.2.0"
+        testing: false
 
     - name: "Import GPG key"
       if: ${{ inputs.armbian_pgp_key != '' }}
