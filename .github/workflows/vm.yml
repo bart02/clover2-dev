@@ -19,18 +19,26 @@ jobs:
   build:
     runs-on: ubuntu-latest # ubuntu-24.04-arm, ubuntu-24.04-riscv
     steps:
-      - run: |
-          touch aaa.py
-          aws s3 sync . s3://clover-vm/${{github.run_id}} --acl public-read --no-progress
-          echo Uploaded https://clover-vm.s3.cloud.ru/${{github.run_id}}/$(ls)
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: ./.github/actions/vm-build
+        id: vm_build
+        with:
+          armbian_token: ${{ secrets.GITHUB_TOKEN }}
+          armbian_target: "clover2-vb"
+          armbian_runner_clean: "yes" # recommended for Github runners
+
+      - name: Upload VM to S3
+        run: |
+          aws s3 sync "${{ steps.vm_build.outputs.armbian_artifacts }}" \
+            "s3://clover-vm/${{ github.run_id }}/" \
+            --acl public-read
+          for artifact in "${{ steps.vm_build.outputs.armbian_artifacts }}"/*; do
+            [[ -f "$artifact" ]] || continue
+            echo "Uploaded https://clover-vm.s3.cloud.ru/${{ github.run_id }}/$(basename "$artifact")"
+          done
         env:
           AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
           AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
           AWS_ENDPOINT_URL: https://s3.cloud.ru/
           AWS_DEFAULT_REGION: ru-central-1
-      # - uses: ./.github/actions/vm-build
-      #   with:
-      #     armbian_token: ${{ secrets.GITHUB_TOKEN }}
-      #     armbian_target: "clover2-vb"
-      #     armbian_runner_clean: "yes" # recommended for Github runners
-
