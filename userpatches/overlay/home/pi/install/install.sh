@@ -44,14 +44,35 @@ install_vscode() {
         -i ./inventory.ini
 }
 
+build_px4() {
+    log_info "Building PX4"
+    mkdir -p ~/tmp
+    cd ~/tmp
+
+    git clone https://github.com/PX4/PX4-Autopilot.git -b v1.16.1 --depth 1 --recursive
+    cd PX4-Autopilot
+    make px4_sitl_default
+}
+
 create_ros2_workspace() {
     log_info "Creating ROS 2 workspace"
     mkdir -p ~/ros2_ws/src
     cd ~/ros2_ws/src
     git clone https://github.com/klever-coex/clover2.git
     git clone https://github.com/klever-coex/clover2-sim.git
-    # cd ..
-    # colcon build --symlink-install
+}
+
+add_prebuilt_px4() {
+    log_info "Adding prebuilt PX4 to ROS 2 workspace"
+    mkdir -p ~/ros2_ws/src/clover2-sim/px4_sim/prebuilt
+    cp -r ~/tmp/PX4-Autopilot/build/px4_sitl_default/bin/ ~/ros2_ws/src/clover2-sim/px4_sim/prebuilt/
+    cp -r ~/tmp/PX4-Autopilot/build/px4_sitl_default/etc/ ~/ros2_ws/src/clover2-sim/px4_sim/prebuilt/
+    
+    rm ~/ros2_ws/src/clover2-sim/px4_sim/CMakeLists.txt
+    cp ~/install/CMakeLists.txt ~/ros2_ws/src/clover2-sim/px4_sim/CMakeLists.txt
+
+    cd ~/ros2_ws
+    colcon build --symlink-install
 }
 
 cd "$(dirname "$0")"
@@ -60,4 +81,6 @@ sudo apt-get update -y
 install_ansible
 install_simulation_deps
 install_vscode
+build_px4
 create_ros2_workspace
+add_prebuilt_px4
