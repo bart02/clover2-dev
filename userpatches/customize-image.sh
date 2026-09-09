@@ -19,7 +19,7 @@ ROS_DISTRO=jazzy
 
 # --- Pinned versions (reproducible builds) ---
 ANSIBLE_VERSION="10.7.0"
-CLOVER2_DEV_COMMIT="f4d9a02117a9a85e3a1cb3a3ec78d19f3049b25b"
+COLLECTION_SOURCE="/tmp/overlay/ansible"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -32,35 +32,28 @@ log_warn()  { echo -e "${YELLOW}[WARN]${NC} $*"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $*"; exit 1; }
 log_stage() { echo -e "${BLUE}[STAGE]${NC} $*"; }
 
-install_ansible() {
-    log_info "Installing Ansible ${ANSIBLE_VERSION} via pipx"
+create_user() {
+    if ! id ${USER} &>/dev/null; then
+        useradd -m -s /bin/bash \
+            -G sudo,adm,dialout,cdrom,plugdev,video,audio,netdev,render \
+            ${USER}
+        echo "${USER}:raspberry" | chpasswd
+        log_info "Created user: ${USER}"
 
-    apt-get install -y pipx make
-    pipx install --include-deps "ansible==${ANSIBLE_VERSION}"
-
-    log_info "Installing clover2-dev Ansible collection (commit ${CLOVER2_DEV_COMMIT})"
-    /root/.local/bin/ansible-galaxy collection install \
-        "git+https://github.com/klever-coex/clover2-dev.git,${CLOVER2_DEV_COMMIT}"
+        # Add nopasswd sudo for ${USER}
+        echo "${USER} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers.d/${USER}
+        chmod 0440 /etc/sudoers.d/${USER}
+    fi
 }
 
-install_ros2() {
-    log_info "Installing ROS 2 ${ROS_DISTRO} via Ansible"
-    /root/.local/bin/ansible-playbook -vv \
-        clover2.dev.install_deps --tags core \
-        -i /home/${USER}/inventory.ini \
-        -e rosdistro=${ROS_DISTRO}
-}
-
-install_mavros() {
-    log_info "Installing MAVROS + geographiclib via Ansible"
-    /root/.local/bin/ansible-playbook -vv \
-        clover2.dev.install_geographiclib --tags geographiclib \
-        -i /home/${USER}/inventory.ini \
-        -e rosdistro=${ROS_DISTRO}
-    /root/.local/bin/ansible-playbook -vv \
-        clover2.dev.install_mavros --tags mavros \
-        -i /home/${USER}/inventory.ini \
-        -e rosdistro=${ROS_DISTRO}
+install_default_kernel() {
+    local generic_kernel_version="6.8.0-139-generic"
+    
+    apt-get update
+    apt-get install -y \
+        "linux-image-${generic_kernel_version}" \
+        "linux-modules-${generic_kernel_version}" \
+        "linux-modules-extra-${generic_kernel_version}"
 }
 
 Main() {
@@ -69,33 +62,27 @@ Main() {
     export LANG=en_US.UTF-8
     export LC_ALL=en_US.UTF-8
 
-    apt-get update -y
+    create_user
 
-    # --- Create pi user ---
-    if ! id ${USER} &>/dev/null; then
-        useradd -m -s /bin/bash \
-            -G sudo,adm,dialout,cdrom,plugdev,video,audio,netdev,render \
-            ${USER}
-        echo "${USER}:raspberry" | chpasswd
-        log_info "Created user: ${USER}"
-    fi
-
-    # --- Copy overlay files to rootfs ---
+    # # --- Copy overlay files to rootfs ---
     if [[ -d /tmp/overlay/home ]]; then
         cp -r /tmp/overlay/home/* /home/
+        chown -R ${USER}:${USER} /home/${USER}
+        chmod -R 755 /home/${USER}
+
         log_info "Overlay /home applied."
     fi
 
-    # --- Install ROS 2 + dependencies via Ansible ---
-    apt-get install -y git
-    locale-gen en_US.UTF-8
+    mkdir -p /dev/shm
+    chmod 1777 /dev/shm
 
-    install_ansible
-    install_ros2
-    install_mavros
+    log_info "Running install.sh as ${USER}"
+    sudo -u ${USER} bash -c "~/install/install.sh"
 
     # --- Cleanup build artifacts ---
-    rm -f /home/${USER}/inventory.ini
+    rm -rf /home/${USER}/install/
+
+    # rm -f /root/.not_logged_in_yet
 
     log_info "Customization complete."
 }
