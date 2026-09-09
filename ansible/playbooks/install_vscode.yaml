@@ -1,0 +1,6 @@
+- name: Install Visual Studio Code
+  hosts: "{{ target | default('local') }}"
+
+  roles:
+    - role: clover2.dev.vscode
+      tags: [vscode]
