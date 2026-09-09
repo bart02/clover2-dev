@@ -27,7 +27,13 @@ jobs:
             arch: arm64
     runs-on: ${{ matrix.runs-on }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@v7
+
+      - name: Copy userpatches for builder
+        run: |
+          mv ansible/ userpatches/overlay/ansible/
+          mkdir -p custom/userpatches
+          cp -r userpatches/* custom/userpatches/
 
       - uses: ./.github/actions/vm-build
         id: vm_build
