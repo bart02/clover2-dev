@@ -226,8 +226,8 @@ runs:
         # execute build command
         ./compile.sh "${{ inputs.armbian_target }}" \
         REVISION="${{ env.ARMBIAN_VERSION }}" \
-        ENABLE_EXTENSIONS="${{ inputs.armbian_extensions }}" \
-        COMPRESS_OUTPUTIMAGE="${{ inputs.armbian_compress }}" \
+        # ENABLE_EXTENSIONS="${{ inputs.armbian_extensions }}" \
+        # COMPRESS_OUTPUTIMAGE="${{ inputs.armbian_compress }}" \
         SHARE_LOG="yes" \
         EXPERT="yes"
 
