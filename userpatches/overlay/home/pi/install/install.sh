@@ -54,6 +54,12 @@ build_px4() {
     make px4_sitl_default
 }
 
+using_prebuilt_px4() {
+    log_info "Using prebuilt PX4"
+    mkdir -p ~/tmp/PX4-Autopilot/build/px4_sitl_default
+    cp -r ~/px4/bin ~/px4/etc ~/tmp/PX4-Autopilot/build/px4_sitl_default/
+}
+
 create_ros2_workspace() {
     set +u
     source /opt/ros/${ROS_DISTRO}/setup.bash
@@ -87,6 +93,8 @@ add_prebuilt_px4() {
 
     cd ~/ros2_ws
     CMAKE_BUILD_PARALLEL_LEVEL=1 MAKEFLAGS="-j1" colcon build --symlink-install --executor sequential
+
+    echo "source ~/ros2_ws/install/setup.bash" >> ~/.bashrc
 }
 
 cd "$(dirname "$0")"
@@ -95,6 +103,7 @@ sudo apt-get update -y
 install_ansible
 install_simulation_deps
 install_vscode
-build_px4
+# build_px4
+using_prebuilt_px4
 create_ros2_workspace
 add_prebuilt_px4
