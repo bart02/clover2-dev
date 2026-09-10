@@ -55,24 +55,38 @@ build_px4() {
 }
 
 create_ros2_workspace() {
+    set +u
+    source /opt/ros/${ROS_DISTRO}/setup.bash
+    set -u
+
     log_info "Creating ROS 2 workspace"
     mkdir -p ~/ros2_ws/src
     cd ~/ros2_ws/src
     git clone https://github.com/klever-coex/clover2.git
     git clone https://github.com/klever-coex/clover2-sim.git
+
+    rosdep update --rosdistro "${ROS_DISTRO}" -r
+    rosdep install --from-paths . --ignore-src --rosdistro "${ROS_DISTRO}" -y
 }
 
 add_prebuilt_px4() {
+    set +u
+    source /opt/ros/${ROS_DISTRO}/setup.bash
+    set -u
+
     log_info "Adding prebuilt PX4 to ROS 2 workspace"
-    mkdir -p ~/ros2_ws/src/clover2-sim/px4_sim/prebuilt
-    cp -r ~/tmp/PX4-Autopilot/build/px4_sitl_default/bin/ ~/ros2_ws/src/clover2-sim/px4_sim/prebuilt/
-    cp -r ~/tmp/PX4-Autopilot/build/px4_sitl_default/etc/ ~/ros2_ws/src/clover2-sim/px4_sim/prebuilt/
+    mkdir -p ~/ros2_ws/src/clover2-sim/px4_sim/prebuilt/px4_sitl_default
+
+    cp -r ~/tmp/PX4-Autopilot/build/px4_sitl_default/bin \
+      ~/tmp/PX4-Autopilot/build/px4_sitl_default/etc \
+      ~/ros2_ws/src/clover2-sim/px4_sim/prebuilt/px4_sitl_default/
+    rm -rf ~/tmp/
     
     rm ~/ros2_ws/src/clover2-sim/px4_sim/CMakeLists.txt
     cp ~/install/CMakeLists.txt ~/ros2_ws/src/clover2-sim/px4_sim/CMakeLists.txt
 
     cd ~/ros2_ws
-    colcon build --symlink-install
+    CMAKE_BUILD_PARALLEL_LEVEL=1 MAKEFLAGS="-j1" colcon build --symlink-install --executor sequential
 }
 
 cd "$(dirname "$0")"
