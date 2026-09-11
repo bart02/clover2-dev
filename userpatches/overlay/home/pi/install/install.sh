@@ -97,6 +97,14 @@ add_prebuilt_px4() {
     echo "source ~/ros2_ws/install/setup.bash" >> ~/.bashrc
 }
 
+clean() {
+    log_info "Cleaning up"
+    pipx uninstall ansible || true
+    sudo apt-get purge -y pipx || true
+
+    rm -rf ~/.ansible ~/.cache/pip
+}
+
 cd "$(dirname "$0")"
 
 sudo apt-get update -y
