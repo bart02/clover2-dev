@@ -99,7 +99,7 @@ add_prebuilt_px4() {
     cp ~/install/CMakeLists.txt ~/ros2_ws/src/clover2-sim/px4_sim/CMakeLists.txt
 
     cd ~/ros2_ws
-    CMAKE_BUILD_PARALLEL_LEVEL=1 MAKEFLAGS="-j1" colcon build --symlink-install --executor sequential
+    colcon build --symlink-install
 
     echo "source ~/ros2_ws/install/setup.bash" >> ~/.bashrc
 }
