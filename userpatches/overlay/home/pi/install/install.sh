@@ -46,8 +46,7 @@ install_vscode() {
 
 build_px4() {
     log_info "Building PX4"
-    mkdir -p ~/tmp
-    cd ~/tmp
+    cd ~
 
     git clone https://github.com/PX4/PX4-Autopilot.git -b v1.16.1 --depth 1 --recursive
     cd PX4-Autopilot
@@ -56,8 +55,16 @@ build_px4() {
 
 using_prebuilt_px4() {
     log_info "Using prebuilt PX4"
-    mkdir -p ~/tmp/PX4-Autopilot/build/px4_sitl_default
-    cp -r ~/px4/bin ~/px4/etc ~/tmp/PX4-Autopilot/build/px4_sitl_default/
+    local arch
+    arch="$(dpkg --print-architecture)"
+
+    case "${arch}" in
+        amd64|arm64) ;;
+        *) log_error "No prebuilt PX4 binary for architecture: ${arch}" ;;
+    esac
+
+    mv ~/PX4-Autopilot/build/px4_sitl_default/bin_"${arch}" \
+       ~/PX4-Autopilot/build/px4_sitl_default/bin
 }
 
 create_ros2_workspace() {
@@ -83,10 +90,10 @@ add_prebuilt_px4() {
     log_info "Adding prebuilt PX4 to ROS 2 workspace"
     mkdir -p ~/ros2_ws/src/clover2-sim/px4_sim/prebuilt/px4_sitl_default
 
-    cp -r ~/tmp/PX4-Autopilot/build/px4_sitl_default/bin \
-      ~/tmp/PX4-Autopilot/build/px4_sitl_default/etc \
+    cp -r ~/PX4-Autopilot/build/px4_sitl_default/bin \
+      ~/PX4-Autopilot/build/px4_sitl_default/etc \
       ~/ros2_ws/src/clover2-sim/px4_sim/prebuilt/px4_sitl_default/
-    rm -rf ~/tmp/
+    rm -rf ~/PX4-Autopilot/
     
     rm ~/ros2_ws/src/clover2-sim/px4_sim/CMakeLists.txt
     cp ~/install/CMakeLists.txt ~/ros2_ws/src/clover2-sim/px4_sim/CMakeLists.txt

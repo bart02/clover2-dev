@@ -1,6 +1,0 @@
-
-
-# serial autostart script generated with generate_serial_config.py
-
-
-set PARAM_FILE /fs/mtd_params
