@@ -41,6 +41,7 @@ jobs:
           armbian_token: ${{ secrets.GITHUB_TOKEN }}
           armbian_target: "clover2-vm-${{ matrix.arch }}"
           armbian_runner_clean: "yes" # recommended for Github runners
+          armbian_branch: f7625e6d3dc8103b08a8dbd11115e6e7b929d084
 
       - name: Upload img to S3
         run: |
