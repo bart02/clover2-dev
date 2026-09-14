@@ -64,6 +64,8 @@ Main() {
 
     create_user
 
+    echo "source /opt/ros/jazzy/setup.bash" >> /home/${USER}/.bashrc
+
     # # --- Copy overlay files to rootfs ---
     if [[ -d /tmp/overlay/home ]]; then
         cp -r /tmp/overlay/home/* /home/
