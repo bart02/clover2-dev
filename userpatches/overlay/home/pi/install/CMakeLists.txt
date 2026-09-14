@@ -24,6 +24,7 @@ install(
   DIRECTORY
     ${PX4_PREBUILT_DIR}/bin
     ${PX4_PREBUILT_DIR}/etc
+    etc
   DESTINATION share/${PROJECT_NAME}
   USE_SOURCE_PERMISSIONS
 )
