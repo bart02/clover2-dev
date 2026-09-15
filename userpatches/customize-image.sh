@@ -75,6 +75,12 @@ Main() {
         log_info "Overlay /home applied."
     fi
 
+    if [[ -f /tmp/overlay/usr/lib/armbian/armbian-firstlogin ]]; then
+        install -m 0755 /tmp/overlay/usr/lib/armbian/armbian-firstlogin \
+            /usr/lib/armbian/armbian-firstlogin
+        log_info "Custom armbian-firstlogin applied."
+    fi
+
     mkdir -p /dev/shm
     chmod 1777 /dev/shm
 
@@ -84,6 +90,8 @@ Main() {
     # --- Cleanup build artifacts ---
     rm -rf /home/${USER}/install/
 
+    rm -f /etc/systemd/system/serial-getty@.service.d/override.conf
+    rm -f /etc/systemd/system/serial-getty@ttyGS0.service.d/override.conf
     # rm -f /root/.not_logged_in_yet
 
     log_info "Customization complete."
