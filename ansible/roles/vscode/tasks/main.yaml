@@ -1,0 +1,75 @@
+---
+- name: Install Visual Studio Code apt prerequisites
+  become: true
+  ansible.builtin.apt:
+    name:
+      - gpg
+    state: present
+    update_cache: true
+  tags:
+    - vscode
+
+- name: Check for existing Microsoft GPG keyring
+  ansible.builtin.stat:
+    path: /usr/share/keyrings/microsoft.gpg
+  register: vscode__microsoft_keyring
+  tags:
+    - vscode
+
+- name: Download Microsoft GPG key
+  ansible.builtin.get_url:
+    url: https://packages.microsoft.com/keys/microsoft.asc
+    dest: /tmp/microsoft.asc
+    mode: "0644"
+  when: not vscode__microsoft_keyring.stat.exists
+  tags:
+    - vscode
+
+- name: Convert Microsoft GPG key to apt keyring format
+  become: true
+  ansible.builtin.command:
+    argv:
+      - gpg
+      - --dearmor
+      - --yes
+      - -o
+      - /usr/share/keyrings/microsoft.gpg
+      - /tmp/microsoft.asc
+  changed_when: true
+  when: not vscode__microsoft_keyring.stat.exists
+  tags:
+    - vscode
+
+- name: Set Microsoft GPG keyring permissions
+  become: true
+  ansible.builtin.file:
+    path: /usr/share/keyrings/microsoft.gpg
+    state: file
+    mode: "0644"
+  tags:
+    - vscode
+
+- name: Add Visual Studio Code apt repository
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/vscode.sources
+    mode: "0644"
+    content: |
+      Types: deb
+      URIs: https://packages.microsoft.com/repos/code
+      Suites: stable
+      Components: main
+      Architectures: amd64,arm64,armhf
+      Signed-By: /usr/share/keyrings/microsoft.gpg
+  tags:
+    - vscode
+
+- name: Install Visual Studio Code
+  become: true
+  ansible.builtin.apt:
+    name:
+      - code
+    state: present
+    update_cache: true
+  tags:
+    - vscode
