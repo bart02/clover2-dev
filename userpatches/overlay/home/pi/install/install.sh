@@ -75,7 +75,12 @@ create_ros2_workspace() {
     log_info "Creating ROS 2 workspace"
     mkdir -p ~/ros2_ws/src
     cd ~/ros2_ws/src
-    git clone https://github.com/klever-coex/clover2.git -b 4120a2570e080c05b9c85e3534a4a9c78a7e1eb0
+
+    git clone https://github.com/klever-coex/clover2.git
+    cd clover2
+    git checkout 4120a2570e080c05b9c85e3534a4a9c78a7e1eb0
+    cd ..
+
     git clone https://github.com/klever-coex/clover2-sim.git -b render-ogre
 
     rosdep update --rosdistro "${ROS_DISTRO}" -r
