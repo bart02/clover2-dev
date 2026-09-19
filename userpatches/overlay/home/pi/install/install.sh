@@ -117,7 +117,16 @@ add_prebuilt_px4() {
 install_qgroundcontrol() {
     log_info "Installing QGroundControl"
     local qgc_version="v5.1.4"
-    local qgc_url="https://github.com/mavlink/qgroundcontrol/releases/download/${qgc_version}/QGroundControl-aarch64.AppImage"
+    local arch qgc_arch
+    arch="$(dpkg --print-architecture)"
+
+    case "${arch}" in
+        arm64) qgc_arch="aarch64" ;;
+        amd64) qgc_arch="x86_64" ;;
+        *) log_error "No QGroundControl AppImage for architecture: ${arch}" ;;
+    esac
+
+    local qgc_url="https://github.com/mavlink/qgroundcontrol/releases/download/${qgc_version}/QGroundControl-${qgc_arch}.AppImage"
     local qgc_path="/home/${USER}/.local/bin/qgroundcontrol"
     mkdir -p "$(dirname "${qgc_path}")"
     wget -O "${qgc_path}" "${qgc_url}"
