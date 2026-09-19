@@ -44,6 +44,11 @@ install_vscode() {
         -i ./inventory.ini
 }
 
+setup_vscode_extensions() {
+    log_info "Setting up Visual Studio Code extensions"
+    code --install-extension ms-python.python
+}
+
 build_px4() {
     log_info "Building PX4"
     cd ~
@@ -109,6 +114,35 @@ add_prebuilt_px4() {
     echo "source ~/ros2_ws/install/setup.bash" >> ~/.bashrc
 }
 
+install_qgroundcontrol() {
+    log_info "Installing QGroundControl"
+    local qgc_version="v5.1.4"
+    local qgc_url="https://github.com/mavlink/qgroundcontrol/releases/download/${qgc_version}/QGroundControl-aarch64.AppImage"
+    local qgc_path="/home/${USER}/.local/bin/qgroundcontrol"
+    mkdir -p "$(dirname "${qgc_path}")"
+    wget -O "${qgc_path}" "${qgc_url}"
+    chmod +x "${qgc_path}"
+
+    local icon_url="https://raw.githubusercontent.com/mavlink/qgroundcontrol/${qgc_version}/resources/icons/qgroundcontrol.png"
+    local icon_path="/home/${USER}/.local/share/icons/qgroundcontrol.png"
+    mkdir -p "$(dirname "${icon_path}")"
+    wget -O "${icon_path}" "${icon_url}"
+
+    mkdir -p ~/.local/share/applications
+    cat <<EOF > ~/.local/share/applications/qgroundcontrol.desktop
+[Desktop Entry]
+Name=QGroundControl
+Comment=Ground control station for drones
+Exec=${qgc_path}
+Icon=qgroundcontrol
+Terminal=false
+Type=Application
+Categories=Development;Science;
+EOF
+
+    chmod 755 ~/.local/share/applications/qgroundcontrol.desktop
+}
+
 clean() {
     log_info "Cleaning up"
     pipx uninstall ansible || true
@@ -123,7 +157,10 @@ sudo apt-get update -y
 install_ansible
 install_simulation_deps
 install_vscode
+setup_vscode_extensions
 # build_px4
 using_prebuilt_px4
 create_ros2_workspace
 add_prebuilt_px4
+install_qgroundcontrol
+clean
